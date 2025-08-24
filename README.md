@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🌱 Plant Store
 
-## Getting Started
+A **full-stack plant store web app** built with **Next.js (App Router)**, **MongoDB**, and **TailwindCSS**.
+This project allows users to explore a collection of plants, view details, and manage plant data via APIs.
 
-First, run the development server:
+🚀 Live Demo: [Plant Store on Vercel](https://urvann-plant-store-nine.vercel.app/)
+
+---
+
+## 📂 Project Structure
+
+```
+plant-store/
+│── app/
+│   ├── api/
+│   │   ├── plants/
+│   │   │   ├── [id]/route.js   # API for single plant (GET, PUT, DELETE)
+│   │   │   └── route.js        # API for all plants (GET, POST)
+│   │   └── seed/route.js       # API to seed initial data
+│   ├── globals.css             # Global styles
+│   ├── layout.js               # Root layout
+│   └── page.js                 # Homepage
+│
+│── lib/
+│   └── mongodb.js              # MongoDB connection helper
+│
+│── models/
+│   └── Plant.js                # Mongoose Plant schema/model
+│
+│── public/                     # Static assets (icons, images, etc.)
+│── .env                        # Environment variables (Mongo URI, etc.)
+│── package.json                # Dependencies
+│── tailwind.config.js          # TailwindCSS config
+│── README.md                   # Documentation
+```
+
+---
+
+## ⚡ Features
+
+* 🏡 Homepage displaying available plants.
+* 🌱 **CRUD APIs** with Next.js App Router (`/api/plants`).
+* 🛠 **Seed API** to populate database with initial plant data.
+* 🗂 **MongoDB + Mongoose** integration.
+* 🎨 Styled with **TailwindCSS** for a clean and responsive UI.
+* 📱 Mobile-friendly layout.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Framework**: [Next.js 13+ (App Router)](https://nextjs.org/)
+* **Database**: [MongoDB](https://www.mongodb.com/) + [Mongoose](https://mongoosejs.com/)
+* **Styling**: [TailwindCSS](https://tailwindcss.com/)
+* **Deployment**: [Vercel](https://vercel.com/)
+
+---
+
+## ▶️ Getting Started
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/your-username/plant-store.git
+cd plant-store
+```
+
+### 2️⃣ Install dependencies
+
+```bash
+npm install
+```
+
+### 3️⃣ Setup Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+MONGODB_URI=your-mongodb-uri
+```
+
+### 4️⃣ Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Deployment
 
-## Learn More
+The app is deployed on **Vercel**.
 
-To learn more about Next.js, take a look at the following resources:
+* Frontend & API routes run seamlessly in the same project.
+* Add `MONGODB_URI` as an Environment Variable in Vercel dashboard.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Live: [Plant Store](https://urvann-plant-store-nine.vercel.app/)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📌 API Routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Endpoint           | Method | Description               |
+| ------------------ | ------ | ------------------------- |
+| `/api/plants`      | GET    | Get all plants            |
+| `/api/plants`      | POST   | Add a new plant           |
+| `/api/plants/[id]` | GET    | Get a single plant by ID  |
+| `/api/plants/[id]` | PUT    | Update plant details      |
+| `/api/plants/[id]` | DELETE | Delete a plant            |
+| `/api/seed`        | POST   | Seed initial data into DB |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📌 Future Improvements
+
+* 🔎 Search & filter functionality.
+* 🛒 Cart & checkout system.
+* 👤 User authentication (login/register).
+* ⭐ Ratings & reviews for plants.
+
