@@ -1,102 +1,74 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Leaf, ShoppingCart, Heart, Star } from 'lucide-react';
+import { Search, Filter, Plus, Leaf, ShoppingCart, Heart, Star, X, Trash2 } from 'lucide-react';
 
 const categories = ['all', 'Indoor', 'Outdoor', 'Succulent', 'Air Purifying', 'Home Decor', 'Flowering', 'Herb', 'Medicinal'];
 
-// Mock data for demonstration
-const mockPlants = [
-  { 
-    _id: '1', 
-    name: "Money Plant", 
-    price: 299, 
-    categories: ["Indoor", "Air Purifying", "Home Decor"], 
-    availability: true,
-    image: "https://images.unsplash.com/photo-1493612276216-ee3925520721?w=400",
-    rating: 4.5,
-    description: "Beautiful indoor plant that brings prosperity"
-  },
-  { 
-    _id: '2', 
-    name: "Snake Plant", 
-    price: 499, 
-    categories: ["Indoor", "Air Purifying", "Succulent"], 
-    availability: true,
-    image: "https://images.unsplash.com/photo-1572688484438-313a6e50c333?w=400",
-    rating: 4.8,
-    description: "Low maintenance air purifying plant"
-  },
-  { 
-    _id: '3', 
-    name: "Peace Lily", 
-    price: 399, 
-    categories: ["Indoor", "Air Purifying", "Flowering"], 
-    availability: true,
-    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
-    rating: 4.6,
-    description: "Elegant flowering plant for indoor spaces"
-  },
-  { 
-    _id: '4', 
-    name: "Aloe Vera", 
-    price: 249, 
-    categories: ["Indoor", "Succulent", "Medicinal"], 
-    availability: false,
-    image: "https://images.unsplash.com/photo-1509423350716-97f2360af34e?w=400",
-    rating: 4.7,
-    description: "Medicinal plant with healing properties"
-  },
-  { 
-    _id: '5', 
-    name: "Monstera Deliciosa", 
-    price: 899, 
-    categories: ["Indoor", "Home Decor"], 
-    availability: true,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
-    rating: 4.9,
-    description: "Instagram-famous Swiss cheese plant"
-  },
-  { 
-    _id: '6', 
-    name: "Fiddle Leaf Fig", 
-    price: 1299, 
-    categories: ["Indoor", "Home Decor"], 
-    availability: true,
-    image: "https://images.unsplash.com/photo-1463154545680-d59320fd685d?w=400",
-    rating: 4.4,
-    description: "Statement plant for modern homes"
-  }
-];
-
 export default function Home() {
-  const [plants, setPlants] = useState(mockPlants);
-  const [filteredPlants, setFilteredPlants] = useState(mockPlants);
-  const [loading, setLoading] = useState(false);
+  const [plants, setPlants] = useState([]);
+  const [filteredPlants, setFilteredPlants] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
 
-  // Filter plants based on search and category
+  // 🔥 REAL API CALL - Fetch plants from database
+  const fetchPlants = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/plants?search=${search}&category=${category}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setPlants(result.data);
+        setFilteredPlants(result.data);
+      } else {
+        console.error('Failed to fetch plants:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching plants:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load plants on component mount
   useEffect(() => {
-    let filtered = plants;
-    
-    if (search) {
-      filtered = filtered.filter(plant => 
-        plant.name.toLowerCase().includes(search.toLowerCase()) ||
-        plant.description.toLowerCase().includes(search.toLowerCase())
-      );
+    fetchPlants();
+  }, []);
+
+  // Fetch plants when search/category changes
+  useEffect(() => {
+    fetchPlants();
+  }, [search, category]);
+
+  // 🗑️ DELETE PLANT FUNCTION
+  const deletePlant = async (plantId) => {
+    if (!confirm('Are you sure you want to delete this plant? 🌱💔')) {
+      return;
     }
-    
-    if (category !== 'all') {
-      filtered = filtered.filter(plant => 
-        plant.categories.includes(category)
-      );
+
+    try {
+      const response = await fetch(`/api/plants/${plantId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove from local state immediately for better UX
+        setPlants(prev => prev.filter(plant => plant._id !== plantId));
+        alert('🗑️ Plant deleted successfully!');
+      } else {
+        alert('❌ Failed to delete plant: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting plant:', error);
+      alert('❌ Error deleting plant. Please try again.');
     }
-    
-    setFilteredPlants(filtered);
-  }, [search, category, plants]);
+  };
 
   const toggleFavorite = (plantId) => {
     setFavorites(prev => {
@@ -129,6 +101,16 @@ export default function Home() {
           >
             <Heart size={16} className={favorites.has(plant._id) ? 'fill-current' : ''} />
           </button>
+          
+          {/* 🗑️ DELETE BUTTON */}
+          <button
+            onClick={() => deletePlant(plant._id)}
+            className="p-2 rounded-full backdrop-blur-sm bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white transition-all"
+            title="Delete Plant"
+          >
+            <Trash2 size={16} />
+          </button>
+
           {!plant.availability && (
             <div className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">
               Out of Stock
@@ -138,7 +120,7 @@ export default function Home() {
         <div className="absolute bottom-4 left-4">
           <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1">
             <Star size={12} className="text-yellow-400 fill-current" />
-            <span className="text-xs font-medium">{plant.rating}</span>
+            <span className="text-xs font-medium">4.5</span>
           </div>
         </div>
       </div>
@@ -191,42 +173,94 @@ export default function Home() {
       price: '',
       categories: '',
       description: '',
+      image: '',
       availability: true
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    // 🔥 REAL API CALL - Add plant to database
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      // Mock adding plant
-      const newPlant = {
-        _id: Date.now().toString(),
-        ...formData,
-        price: parseInt(formData.price),
-        categories: formData.categories.split(',').map(c => c.trim()),
-        image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
-        rating: 4.0
-      };
+      setIsSubmitting(true);
       
-      setPlants(prev => [newPlant, ...prev]);
-      setShowAddForm(false);
-      setFormData({ name: '', price: '', categories: '', description: '', availability: true });
+      try {
+        const plantData = {
+          name: formData.name,
+          price: parseFloat(formData.price),
+          categories: formData.categories.split(',').map(c => c.trim()).filter(c => c),
+          description: formData.description || 'Beautiful plant for your home',
+          image: formData.image || "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400",
+          availability: formData.availability
+        };
+        
+        const response = await fetch('/api/plants', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(plantData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // ✅ Success - refresh plants and close form
+          setShowAddForm(false);
+          setFormData({ 
+            name: '', 
+            price: '', 
+            categories: '', 
+            description: '', 
+            image: '', 
+            availability: true 
+          });
+          
+          // Refresh plants from database
+          await fetchPlants();
+          
+          alert('🌱 Plant added successfully!');
+        } else {
+          alert('❌ Failed to add plant: ' + result.error);
+        }
+      } catch (error) {
+        console.error('Error adding plant:', error);
+        alert('❌ Error adding plant. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     };
 
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-green-100 rounded-full">
-              <Leaf className="text-green-600" size={24} />
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowAddForm(false);
+          }
+        }}
+      >
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <button
+            onClick={() => setShowAddForm(false)}
+            className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close form"
+          >
+            <X size={20} className="text-gray-500 hover:text-gray-700" />
+          </button>
+          
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-green-100 rounded-full">
+              <Leaf className="text-green-600" size={20} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Add New Plant</h2>
+            <h2 className="text-xl font-bold text-gray-800">Add New Plant</h2>
           </div>
           
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Plant Name</label>
+              <label className="block text-xs font-medium text-gray-800 mb-1">Plant Name *</label>
               <input
                 type="text"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-gray-800 text-sm"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 placeholder="e.g., Money Plant"
@@ -235,39 +269,54 @@ export default function Home() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Price (₹)</label>
+              <label className="block text-xs font-medium text-gray-800 mb-1">Price (₹) *</label>
               <input
                 type="number"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-gray-800 text-sm"
                 value={formData.price}
                 onChange={(e) => setFormData({...formData, price: e.target.value})}
                 placeholder="299"
+                min="0"
+                step="0.01"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Brief description of the plant..."
-                rows="3"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Categories</label>
+              <label className="block text-xs font-medium text-gray-800 mb-1">Categories *</label>
               <input
                 type="text"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-gray-800 text-sm"
                 value={formData.categories}
                 onChange={(e) => setFormData({...formData, categories: e.target.value})}
                 placeholder="Indoor, Air Purifying, Home Decor"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">Enter multiple categories separated by commas</p>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-800 mb-1">Plant Image URL</label>
+              <input
+                type="url"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-gray-800 text-sm"
+                value={formData.image}
+                onChange={(e) => setFormData({...formData, image: e.target.value})}
+                placeholder="https://example.com/plant-image.jpg"
+              />
+              <p className="text-xs text-gray-500 mt-1">Optional: Leave empty for default image</p>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-800 mb-1">Description</label>
+              <textarea
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none text-gray-800 text-sm"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Brief description of the plant..."
+                rows="2"
+              />
+              <p className="text-xs text-gray-500 mt-1">Optional: Leave empty for default description</p>
             </div>
             
             <div className="flex items-center gap-3">
@@ -278,28 +327,33 @@ export default function Home() {
                 onChange={(e) => setFormData({...formData, availability: e.target.checked})}
                 className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
               />
-              <label htmlFor="availability" className="text-sm font-medium text-gray-700">
+              <label htmlFor="availability" className="text-sm font-medium text-gray-800">
                 Available in Stock
               </label>
             </div>
             
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-2 pt-2">
               <button 
-                type="button" 
-                onClick={handleSubmit}
-                className="flex-1 bg-green-600 text-white py-4 px-6 rounded-xl font-medium hover:bg-green-700 transition-colors"
+                type="submit"
+                disabled={isSubmitting}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors text-sm ${
+                  isSubmitting 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-green-600 hover:bg-green-700'
+                } text-white`}
               >
-                Add Plant
+                {isSubmitting ? '🔄 Adding...' : '✅ Add Plant'}
               </button>
               <button 
                 type="button" 
                 onClick={() => setShowAddForm(false)}
-                className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                disabled={isSubmitting}
+                className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
               >
                 Cancel
               </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     );
@@ -384,15 +438,15 @@ export default function Home() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm border">
-            <div className="text-3xl font-bold text-green-600">{filteredPlants.length}</div>
-            <div className="text-gray-600 font-medium">Plants Available</div>
+            <div className="text-3xl font-bold text-green-600">{plants.length}</div>
+            <div className="text-gray-600 font-medium">Total Plants</div>
           </div>
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm border">
             <div className="text-3xl font-bold text-blue-600">{categories.length - 1}</div>
             <div className="text-gray-600 font-medium">Categories</div>
           </div>
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm border">
-            <div className="text-3xl font-bold text-purple-600">{filteredPlants.filter(p => p.availability).length}</div>
+            <div className="text-3xl font-bold text-purple-600">{plants.filter(p => p.availability).length}</div>
             <div className="text-gray-600 font-medium">In Stock</div>
           </div>
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm border">
@@ -405,11 +459,11 @@ export default function Home() {
         {loading ? (
           <div className="text-center py-16">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-green-600 border-t-transparent"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading beautiful plants...</p>
+            <p className="mt-4 text-gray-600 font-medium">Loading plants from database...</p>
           </div>
-        ) : filteredPlants.length > 0 ? (
+        ) : plants.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredPlants.map((plant) => (
+            {plants.map((plant) => (
               <PlantCard key={plant._id} plant={plant} />
             ))}
           </div>
@@ -418,8 +472,14 @@ export default function Home() {
             <div className="mb-4">
               <Leaf size={64} className="text-gray-300 mx-auto" />
             </div>
-            <p className="text-gray-500 text-lg font-medium">No plants found</p>
-            <p className="text-gray-400">Try adjusting your search or filters</p>
+            <p className="text-gray-500 text-lg font-medium">No plants found in database</p>
+            <p className="text-gray-400">Add your first plant or try different filters</p>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all"
+            >
+              Add First Plant 🌱
+            </button>
           </div>
         )}
       </main>
