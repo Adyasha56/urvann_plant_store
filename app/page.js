@@ -475,8 +475,9 @@ export default function Home() {
               
               <div className="mt-2">
                 <p className="text-xs text-green-600 font-medium">
-                  🎯 <strong>Smart URL Converter:</strong> Paste ANY image URL and I&apos;ll make it work!
+                    🎯 <strong>Smart URL Converter:</strong> Paste ANY image URL and I&apos;ll make it work!
                 </p>
+
                 <div className="text-xs text-gray-500 mt-1">
                   ✅ Supports: Unsplash, Google Images, Pinterest, iStock, Wikipedia<br/>
                   ✅ Just paste the page URL - no need to find direct image links!
