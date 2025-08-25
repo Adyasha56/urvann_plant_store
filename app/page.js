@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Plus, Leaf, ShoppingCart, Heart, Star, X, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 
 // Import separate components
 import Header from '@/components/Header';
@@ -18,8 +19,8 @@ export default function Home() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
 
-  //  API CALL - Fetch plants from database
-  const fetchPlants = async () => {
+  // 🔥 REAL API CALL - Fetch plants from database
+  const fetchPlants = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/plants?search=${search}&category=${category}`);
@@ -36,19 +37,14 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Load plants on component mount
-  useEffect(() => {
-    fetchPlants();
-  }, []);
-
-  // Fetch plants when search/category changes
-  useEffect(() => {
-    fetchPlants();
   }, [search, category]);
 
-  // DELETE PLANT FUNCTION
+  // Load plants on component mount and when search/category changes
+  useEffect(() => {
+    fetchPlants();
+  }, [fetchPlants]);
+
+  // 🗑️ DELETE PLANT FUNCTION
   const deletePlant = async (plantId) => {
     if (!confirm('Are you sure you want to delete this plant? 🌱💔')) {
       return;
@@ -64,7 +60,7 @@ export default function Home() {
       if (result.success) {
         // Remove from local state immediately for better UX
         setPlants(prev => prev.filter(plant => plant._id !== plantId));
-        alert(' Plant deleted successfully!');
+        alert('🗑️ Plant deleted successfully!');
       } else {
         alert('❌ Failed to delete plant: ' + result.error);
       }
@@ -111,12 +107,15 @@ export default function Home() {
       <div className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:-translate-y-2">
         <div className="relative overflow-hidden">
           {!imageError ? (
-            <img 
-              src={fallbackImages[currentImageIndex]} 
+            <Image
+              src={fallbackImages[currentImageIndex]}
               alt={plant.name}
+              width={400}
+              height={224}
               className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-300"
               onError={handleImageError}
               onLoad={() => setImageError(false)}
+              priority={false}
             />
           ) : (
             // Fallback when all images fail
@@ -215,7 +214,7 @@ export default function Home() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // URL CONVERTER FUNCTION
+    // 🔥 URL CONVERTER FUNCTION
     const convertImageUrl = (url) => {
       if (!url) return '';
       
@@ -275,7 +274,7 @@ export default function Home() {
       setFormData({...formData, image: convertedUrl});
     };
 
-    // 🔥 REAL API CALL - Add plant to database
+    // REAL API CALL - Add plant to database
     const handleSubmit = async (e) => {
       e.preventDefault();
       setIsSubmitting(true);
@@ -400,9 +399,11 @@ export default function Home() {
               {/* Image Preview */}
               {formData.image && (
                 <div className="mb-2">
-                  <img 
-                    src={formData.image} 
-                    alt="Preview" 
+                  <Image
+                    src={formData.image}
+                    alt="Preview"
+                    width={80}
+                    height={80}
                     className="w-20 h-20 object-cover rounded-lg border"
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -474,7 +475,7 @@ export default function Home() {
               
               <div className="mt-2">
                 <p className="text-xs text-green-600 font-medium">
-                  🎯 <strong>Smart URL Converter:</strong> Paste ANY image URL and I'll make it work!
+                  🎯 <strong>Smart URL Converter:</strong> Paste ANY image URL and I&apos;ll make it work!
                 </p>
                 <div className="text-xs text-gray-500 mt-1">
                   ✅ Supports: Unsplash, Google Images, Pinterest, iStock, Wikipedia<br/>
