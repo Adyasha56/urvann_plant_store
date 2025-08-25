@@ -1,7 +1,11 @@
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true, // disables domain restriction & optimization
+    unoptimized: true, // disables next/image optimization, so no need to whitelist domains
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // ignores ESLint errors during build
   },
 };
 

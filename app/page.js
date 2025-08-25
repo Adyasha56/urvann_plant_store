@@ -19,7 +19,7 @@ export default function Home() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
 
-  // 🔥 REAL API CALL - Fetch plants from database
+  // REAL API CALL - Fetch plants from database
   const fetchPlants = useCallback(async () => {
     setLoading(true);
     try {
