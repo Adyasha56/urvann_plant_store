@@ -17,7 +17,8 @@ export async function GET(request) {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { categories: { $regex: search, $options: 'i' } }
+        { categories: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
       ];
     }
     
@@ -43,7 +44,9 @@ export async function POST(request) {
     await connectDB();
     
     const body = await request.json();
-    const { name, price, categories, availability } = body;
+    console.log('Received plant data:', body); // Debug log
+    
+    const { name, price, categories, availability, image, description } = body;
     
     // Validation
     if (!name || !price || !categories || categories.length === 0) {
@@ -53,17 +56,26 @@ export async function POST(request) {
       );
     }
     
-    const plant = new Plant({
-      name,
+    // Create plant with proper image and description handling
+    const plantData = {
+      name: name.trim(),
       price: parseFloat(price),
       categories: Array.isArray(categories) ? categories : [categories],
-      availability: availability !== undefined ? availability : true
-    });
+      availability: availability !== undefined ? availability : true,
+      image: image && image.trim() ? image.trim() : 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
+      description: description && description.trim() ? description.trim() : 'Beautiful plant for your home'
+    };
     
+    console.log('Creating plant with data:', plantData); // Debug log
+    
+    const plant = new Plant(plantData);
     await plant.save();
+    
+    console.log('Plant saved successfully:', plant); // Debug log
     
     return NextResponse.json({ success: true, data: plant }, { status: 201 });
   } catch (error) {
+    console.error('Error creating plant:', error); // Debug log
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
